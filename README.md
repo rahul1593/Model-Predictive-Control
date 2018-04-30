@@ -46,7 +46,19 @@ Here we have two control values output by the model which control the vehicle's 
 
 __delta__: This is steering value. It is constrained to be in between -25 and 25 degrees converted to radians.
 
-__a__ &nbsp;&nbsp;&nbsp;: This is throttle value. It is constrained to be in between -1 and 1. Negative values represents breaking and positive value for acceleration.
+__a__ &nbsp; &nbsp; &nbsp;: This is throttle value. It is constrained to be in between -1 and 1. Negative values represents breaking and positive value for acceleration.
+
+### Kinematic Model equations
+
+Following are the equations used to get the next state after time elapsed `dt`:
+
+* n_px = px + v\*cos(phi)\*dt
+* n_px = py + v\*sin(phi)\*dt
+* n_psi = psi + v\*(delta/Lf)*dt
+* n_v = v + a\*dt
+* n_cte = cte + v\*sin(epsi)\*dt;
+where Lf is the distance between the front axle and center of mass of the vehicle.
+
 
 ## Timestep Length and Elapsed Duration (N & dt)
 ## Polynomial Fitting and MPC Preprocessing
