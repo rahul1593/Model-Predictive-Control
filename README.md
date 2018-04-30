@@ -23,16 +23,16 @@ Dependencies:
 For more info, check <a href="https://github.com/udacity/CarND-MPC-Project">this repository</a>.
 
 ## Model Predictive Control
-In MPC we predict the next few states based on the equations for kinematic model, so that car can plan the optimal trajectory for moving from one state to another.
+In MPC we predict the next few states based on the equations for kinematic model, so that the vehicle can plan the optimal trajectory for moving from one state to another.
 
-MPC uses an optimizer to minimise the cost associate with actuations according to the given cost function.
+MPC uses an optimizer to minimise the cost associate with the actuations according to the given cost function.
 
 Following is the flow of code for this project:
 * Get the current state from the simulator
 * Generate the reference trajectory and claculate the cross-track and orientation errors.
 * Predict the state 100ms in the future to account for delay in actuations and pass the state to the solver.
-* Solver uses the cost function to get the cost for the predictions and tries to minimise the cost for the returned output.
-* The state returned by the solver is send to the simulator and the process is repeated.
+* Solver uses the cost function to get the cost for the predictions it makes and tries to minimise the cost for the returned output.
+* The state returned by the solver is send to the simulator with 100ms delay and the process is repeated.
 
 ### State
 Following are the state variables:
@@ -97,8 +97,7 @@ Following are the weights used for each of the above errors respectively:
 For getting the reference trajectory, the waypoints provided by the simulator need to be converted to the vehicle coordinate system. The converted waypoints are then used to fit a 3rd degree polynomial. Cross track error and orientation error is also calculated using the polynomial coefficients.
 
 Following code snippet show the code for the same:
-```
- C
+```C
           const int points_n = ptsx.size();
           Eigen::VectorXd vpts_x(points_n);
           Eigen::VectorXd vpts_y(points_n);
@@ -125,8 +124,7 @@ Following code snippet show the code for the same:
 To mimic the real world conditions, the latency of 100 milliseconds is introduced in the repsonse to the simulator. To account for this latency the model must predict the actuations for state after 100 ms in future.
 
 Following code snippet shows the calculation of state after 100ms, which is then used for the actuation prediction:
-```
-C
+```C
           //delay in actuator response
           const double dt = 0.1;
           
