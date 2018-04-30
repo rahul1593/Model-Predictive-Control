@@ -67,6 +67,7 @@ Following are the equations used to get the next state after time elapsed `dt`:
 * n_v = v + a\*dt
 * n_cte = cte + v\*sin(epsi)\*dt;
 * n_epsi = epsi +  v\*(delta/Lf)*dt
+
 where Lf is the distance between the front axle and center of mass of the vehicle.
 
 ### Cost Function
@@ -97,7 +98,7 @@ For getting the reference trajectory, the waypoints provided by the simulator ne
 
 Following code snippet show the code for the same:
 ```
- c
+ C
           const int points_n = ptsx.size();
           Eigen::VectorXd vpts_x(points_n);
           Eigen::VectorXd vpts_y(points_n);
@@ -125,7 +126,7 @@ To mimic the real world conditions, the latency of 100 milliseconds is introduce
 
 Following code snippet shows the calculation of state after 100ms, which is then used for the actuation prediction:
 ```
-c
+C
           //delay in actuator response
           const double dt = 0.1;
           
