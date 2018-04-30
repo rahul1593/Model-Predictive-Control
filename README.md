@@ -1,108 +1,146 @@
-# CarND-Controls-MPC
-Self-Driving Car Engineer Nanodegree Program
+# Model Predictive Control Project
 
----
+In this project, I have implemented a Model Predictive Controller for controlling the steering and throttle of the car in simulator, such that it closely follows a simulator generated trajectory.
 
-## Dependencies
+Following is the output video for this project.
+https://youtu.be/NGlVQ3fEfiE
 
-* cmake >= 3.5
- * All OSes: [click here for installation instructions](https://cmake.org/install/)
-* make >= 4.1(mac, linux), 3.81(Windows)
-  * Linux: make is installed by default on most Linux distros
-  * Mac: [install Xcode command line tools to get make](https://developer.apple.com/xcode/features/)
-  * Windows: [Click here for installation instructions](http://gnuwin32.sourceforge.net/packages/make.htm)
-* gcc/g++ >= 5.4
-  * Linux: gcc / g++ is installed by default on most Linux distros
-  * Mac: same deal as make - [install Xcode command line tools]((https://developer.apple.com/xcode/features/)
-  * Windows: recommend using [MinGW](http://www.mingw.org/)
-* [uWebSockets](https://github.com/uWebSockets/uWebSockets)
-  * Run either `install-mac.sh` or `install-ubuntu.sh`.
-  * If you install from source, checkout to commit `e94b6e1`, i.e.
-    ```
-    git clone https://github.com/uWebSockets/uWebSockets
-    cd uWebSockets
-    git checkout e94b6e1
-    ```
-    Some function signatures have changed in v0.14.x. See [this PR](https://github.com/udacity/CarND-MPC-Project/pull/3) for more details.
+## Setup
+Dependencies:
+ 1. cmake >= 3.5
+ 2. make >= 4.1
+ 3. gcc/g++ >= 5.4
+ 4. uWebSockets: run `./install-ubuntu.sh`.
+ 5. Ipopt and CppAD: Refer <a href="https://github.com/udacity/CarND-MPC-Project/blob/master/install_Ipopt_CppAD.md">this document</a> for instructions.
+ 
+ This project involves the Term 2 Simulator which can be downloaded <a href="https://github.com/udacity/self-driving-car-sim/releases">here</a>.
+ 
+ To build the project run the following commands after cloning this repository:
+  1. `cd build`
+  2. `sudo chmod +x run.sh`
+  3. `./run`
 
-* **Ipopt and CppAD:** Please refer to [this document](https://github.com/udacity/CarND-MPC-Project/blob/master/install_Ipopt_CppAD.md) for installation instructions.
-* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page). This is already part of the repo so you shouldn't have to worry about it.
-* Simulator. You can download these from the [releases tab](https://github.com/udacity/self-driving-car-sim/releases).
-* Not a dependency but read the [DATA.md](./DATA.md) for a description of the data sent back from the simulator.
+For more info, check <a href="https://github.com/udacity/CarND-MPC-Project">this repository</a>.
 
+## Model Predictive Control
+In MPC we predict the next few states based on the equations for kinematic model, so that the vehicle can plan the optimal trajectory for moving from one state to another.
 
-## Basic Build Instructions
+MPC uses an optimizer to minimise the cost associate with the actuations according to the given cost function.
 
-1. Clone this repo.
-2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
-4. Run it: `./mpc`.
+Following is the flow of code for this project:
+* Get the current state from the simulator
+* Generate the reference trajectory and claculate the cross-track and orientation errors.
+* Predict the state 100ms in the future to account for delay in actuations and pass the state to the solver.
+* Solver uses the cost function to get the cost for the predictions it makes and tries to minimise the cost for the returned output.
+* The state returned by the solver is send to the simulator with 100ms delay and the process is repeated.
 
-## Tips
+### State
+Following are the state variables:
+ * __px__ : position in x-axis in map coordinates
+ * __py__ : position in y-axis in map coordinates
+ * __psi__: current orientation
+ * __v__ &nbsp; &nbsp;: current velocity
 
-1. It's recommended to test the MPC on basic examples to see if your implementation behaves as desired. One possible example
-is the vehicle starting offset of a straight line (reference). If the MPC implementation is correct, after some number of timesteps
-(not too many) it should find and track the reference line.
-2. The `lake_track_waypoints.csv` file has the waypoints of the lake track. You could use this to fit polynomials and points and see of how well your model tracks curve. NOTE: This file might be not completely in sync with the simulator so your solution should NOT depend on it.
-3. For visualization this C++ [matplotlib wrapper](https://github.com/lava/matplotlib-cpp) could be helpful.)
-4.  Tips for setting up your environment are available [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-5. **VM Latency:** Some students have reported differences in behavior using VM's ostensibly a result of latency.  Please let us know if issues arise as a result of a VM environment.
+These state variables are provided by the simulator along with the waypoints(in map coordinates) which are used as reference points where the vehicle should be in ideal situation. These waypoints are used to generate reference trajectory by fitting to a 3rd degree polynomial.
 
-## Editor Settings
+### Error
+Cross track error and error in orientation can be calculated by using the current and desired states.
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+__cte__ : Cross track error is difference between current and desired position. Here we can use our fitted polynomial coefficients to get cte when x=0 for current position(since vehicle is at center), which is `coeff[0]`(coeff is the fitted polynomial).
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+__epsi__: Error in orientation is the error between current and desired heading directions. It is equivalent to arctan of first order derivative of cte at x=0, which is `coeff[1]`.
 
-## Code Style
+### Controls
+Here we have two control values output by the model which control the vehicle's behaviour,i.e, steering and throttle. Following are the variables used for the same.
 
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
+__delta__: This is steering value. It is constrained to be in between -25 and 25 degrees converted to radians.
 
-## Project Instructions and Rubric
+__a__ &nbsp; &nbsp; &nbsp;: This is throttle value. It is constrained to be in between -1 and 1. Negative values represents breaking and positive value for acceleration.
 
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
+### Kinematic Model equations
 
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/b1ff3be0-c904-438e-aad3-2b5379f0e0c3/concepts/1a2255a0-e23c-44cf-8d41-39b8a3c8264a)
-for instructions and the project rubric.
+Following are the equations used to get the next state after time elapsed `dt`:
 
-## Hints!
+* n_px = px + v\*cos(phi)\*dt
+* n_px = py + v\*sin(phi)\*dt
+* n_psi = psi + v\*(delta/Lf)*dt
+* n_v = v + a\*dt
+* n_cte = cte + v\*sin(epsi)\*dt;
+* n_epsi = epsi +  v\*(delta/Lf)*dt
 
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
+where Lf is the distance between the front axle and center of mass of the vehicle.
 
-## Call for IDE Profiles Pull Requests
+### Cost Function
+The cost funtion determines how much should we penalise the different errors such that the optimal predictions result in accurate and smooth actions by the vehicle. Following are the errors accounted for in the cost function:
 
-Help your fellow students!
+* Cross track error
+* Error in orientation
+* Error in velocity
+* Error in steering angle to acoid unnecessary steerinf
+* Error in acceleration to avoid unnecessary throttle
+* Difference between subsequent steering angles to avoid sudden steering
+* Difference in subsequent throttle values to avoid sudden acceleration and braking
 
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
+Following are the weights used for each of the above errors respectively:
+* cte_w = 115.1
+* epsi_w = 95.1
+* v_w = 0.007
+* dlt_w = 95.1
+* a_w = 1.1
+* dltd_w = 20.1
+* ad_w = 1.1
 
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
+## Timestep Length and Elapsed Duration (N & dt)
+`N` is the length of timesteps for which we predict state where each timestep is of duration `dt`. 1 second is the most practical value for lookahead since the world is dynamic and sudden changes might result in change of course, so looking beyond 1 second may be useless. So `N*dt` should be approximately 1 second. Using `dt=0.1` (along with `n=10`) seemed too short duration (experimentally) for reacting, since it mostly destabilized the vehicle. So, I used `dt=0.15` and `N=8` to get smooth transit. Also we have 100 millisecond latency. So the choosen values result in optimal output.
 
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
+## Polynomial Fitting and MPC Preprocessing
+For getting the reference trajectory, the waypoints provided by the simulator need to be converted to the vehicle coordinate system. The converted waypoints are then used to fit a 3rd degree polynomial. Cross track error and orientation error is also calculated using the polynomial coefficients.
 
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
+Following code snippet show the code for the same:
+```C
+          const int points_n = ptsx.size();
+          Eigen::VectorXd vpts_x(points_n);
+          Eigen::VectorXd vpts_y(points_n);
+          
+          for(int i = 0; i < points_n; ++i) {
+            const double dx = ptsx[i] - px;
+            const double dy = ptsy[i] - py;
+            
+            vpts_x[i] = dx * cos(-psi) - dy * sin(-psi);
+            vpts_y[i] = dy * cos(-psi) + dx * sin(-psi);
+          }
+          
+          // fit polynomial
+          auto pf = polyfit(vpts_x, vpts_y, 3);
+          
+          // generate error estimates
+          double cte = pf[0];
 
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
+          // heading error
+          double epsi = -atan(pf[1]);
+ ```
 
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
+## Model Predictive Control with Latency
+To mimic the real world conditions, the latency of 100 milliseconds is introduced in the repsonse to the simulator. To account for this latency the model must predict the actuations for state after 100 ms in future.
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+Following code snippet shows the calculation of state after 100ms, which is then used for the actuation prediction:
+```C
+          //delay in actuator response
+          const double dt = 0.1;
+          
+          // Vehicle is assumed to be moving along x-axis and vehicle is located at the center of it
+          // so, {px, py, psi = 0.0, 0.0, 0.0}
+          px = 0.0 + v * dt;
+          py = 0.0;
+          v = v + a * dt;
+          psi = 0.0 + v * (delta) / Lf * dt;
+          cte = cte + v * sin(epsi) * dt;
+          epsi = epsi + v * (delta / Lf) * dt;
+
+          Eigen::VectorXd state(6);
+          state << px, py, psi, v, cte, epsi;
+          // solve to get the next state using MPC
+          auto res = mpc.Solve(state, pf);
+          steer_value = -res[6];
+          throttle_value = res[7];
+```
