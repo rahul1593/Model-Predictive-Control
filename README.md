@@ -16,15 +16,24 @@ Dependencies:
  This project involves the Term 2 Simulator which can be downloaded <a href="https://github.com/udacity/self-driving-car-sim/releases">here</a>.
  
  To build the project run the following commands after cloning this repository:
- 1. cd build
- 2. sudo chmod +x run.sh
- 3. ./run
+  1. cd build
+  2. sudo chmod +x run.sh
+  3. ./run
 
 For more info, check <a href="https://github.com/udacity/CarND-MPC-Project">this repository</a>.
 
 ## The Model
+In MPC we predict the next few states based on the equations for kinematic model, so that car can plan the optimal trajectory for moving from one state to another.
 
-ctet+1​=ctet​+vt​∗sin(eψt​)∗dt
+Following are the state variables:
+ 1. __px__ : position in x-axis in map coordinates
+ 2. __py__ : position in y-axis in map coordinates
+ 3. __psi__: current orientation
+ 4. __v__: current velocity
+
+These state variables are provided by the simulator along with the waypoints(in map coordinates) which are used as reference points where the vehicle should be in ideal situation. These waypoints are used to generate reference trajectory by fitting to a `3^rd` degree polynomial.
+
+
 ## Timestep Length and Elapsed Duration (N & dt)
 ## Polynomial Fitting and MPC Preprocessing
 ## Model Predictive Control with Latency
