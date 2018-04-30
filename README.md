@@ -30,7 +30,7 @@ Following are the state variables:
  1. __px__ : position in x-axis in map coordinates
  2. __py__ : position in y-axis in map coordinates
  3. __psi__: current orientation
- 4. __v__  : current velocity
+ 4. __v__ &nbsp;: current velocity
 
 These state variables are provided by the simulator along with the waypoints(in map coordinates) which are used as reference points where the vehicle should be in ideal situation. These waypoints are used to generate reference trajectory by fitting to a 3rd degree polynomial.
 
@@ -46,7 +46,7 @@ Here we have two control values output by the model which control the vehicle's 
 
 __delta__: This is steering value. It is constrained to be in between -25 and 25 degrees converted to radians.
 
-__a__    : This is throttle value. It is constrained to be in between -1 and 1. Negative values represents breaking and positive value for acceleration.
+__a__ &nbsp;&nbsp;&nbsp;: This is throttle value. It is constrained to be in between -1 and 1. Negative values represents breaking and positive value for acceleration.
 
 ## Timestep Length and Elapsed Duration (N & dt)
 ## Polynomial Fitting and MPC Preprocessing
