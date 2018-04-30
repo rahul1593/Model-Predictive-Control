@@ -18,7 +18,7 @@ Dependencies:
  To build the project run the following commands after cloning this repository:
   1. `cd build`
   2. `sudo chmod +x run.sh`
-  3. `./run`
+  3. `./run.sh`
 
 For more info, check <a href="https://github.com/udacity/CarND-MPC-Project">this repository</a>.
 
