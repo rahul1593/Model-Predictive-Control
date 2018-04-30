@@ -64,11 +64,13 @@ int main(int argc, char* argv[]) {
     a_w = (double)atof(argv[5]);
     dltd_w = (double)atof(argv[6]);
     ad_w = (double)atof(argv[7]);
-    std::cout << cte_w << " " << epsi_w << " " << v_w << " " << dlt_w << " " << a_w << " " << dltd_w << " " << ad_w << std::endl;
+    std::cout << "Using user supplied values..\n";
   }
   else{
-    std::cout << "Not enough data\n";
+    std::cout << "Using default values..\n";
   }
+  std::cout << cte_w << " " << epsi_w << " " << v_w << " " << dlt_w << " " << a_w << " " << dltd_w << " " << ad_w << std::endl;
+  
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -105,7 +107,7 @@ int main(int argc, char* argv[]) {
           const int points_n = ptsx.size();
           Eigen::VectorXd vpts_x(points_n);
           Eigen::VectorXd vpts_y(points_n);
-
+          
           for(int i = 0; i < points_n; ++i) {
             const double dx = ptsx[i] - px;
             const double dy = ptsy[i] - py;
@@ -118,24 +120,16 @@ int main(int argc, char* argv[]) {
           auto pf = polyfit(vpts_x, vpts_y, 3);
           
           // generate error estimates
-          // current CTE is fitted polynomial (road curve) evaluated at px = 0
           double cte = pf[0];
 
-          // current heading error epsi is the tangent to the road curve at px = 0.0
-          // epsi = arctan(f') where f' is the derivative of the fitted polynomial
-          // f' = 3.0 * pf[3] * px0 * px0 + 2.0 * pf[2] * px0 + pf[1]
+          // heading error
           double epsi = -atan(pf[1]);
 
           //delay in actuator response
           const double dt = 0.1;
-          // current state must be in vehicle coordinates with the delay factored in
-          // kinematic model is at play here
-          // note that at current state at vehicle coordinates:
-          // px, py, psi = 0.0, 0.0, 0.0
-          // note that in vehicle coordinates it is going straight ahead the x-axis
-          // which means position in vehicle's y-axis does not change
-          // the steering angle is negative the given value as we have
-          // as recall that during transformation we rotated all waypoints by -psi
+          
+          // Vehicle is assumed to be moving along x-axis and vehicle is located at the center of it
+          // so, {px, py, psi = 0.0, 0.0, 0.0}
           px = 0.0 + v * dt;
           py = 0.0;
           v = v + a * dt;

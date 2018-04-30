@@ -32,13 +32,13 @@ size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
 //set as supplied through command line, else as below
-double cte_w = 115.0;
-double epsi_w = 95.0;
+double cte_w = 115.1;
+double epsi_w = 95.1;
 double v_w = 0.007;
-double dlt_w = 95.0;
-double a_w = 1.0;
-double dltd_w = 20.0;
-double ad_w = 1.0;
+double dlt_w = 95.1;
+double a_w = 1.1;
+double dltd_w = 20.1;
+double ad_w = 1.1;
 
 // Evaluate a polynomial.
 double polyeval(Eigen::VectorXd coeffs, double x) {
