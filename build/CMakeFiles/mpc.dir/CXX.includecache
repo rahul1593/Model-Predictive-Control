@@ -775,15 +775,13 @@ lapacke_mangling.h
 /home/geek/dev/git/Model-Predictive-Control/src/MPC.cpp
 MPC.h
 /home/geek/dev/git/Model-Predictive-Control/src/MPC.h
-cppad/cppad.hpp
--
 cppad/ipopt/solve.hpp
 -
-Eigen-3.3/Eigen/Core
-/home/geek/dev/git/Model-Predictive-Control/src/Eigen-3.3/Eigen/Core
 
 /home/geek/dev/git/Model-Predictive-Control/src/MPC.h
 vector
+-
+cppad/cppad.hpp
 -
 Eigen-3.3/Eigen/Core
 /home/geek/dev/git/Model-Predictive-Control/src/Eigen-3.3/Eigen/Core

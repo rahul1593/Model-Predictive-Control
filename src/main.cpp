@@ -12,11 +12,6 @@
 // for convenience
 using json = nlohmann::json;
 
-// For converting back and forth between radians and degrees.
-constexpr double pi() { return M_PI; }
-double deg2rad(double x) { return x * pi() / 180; }
-double rad2deg(double x) { return x * 180 / pi(); }
-
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
 // else the empty string "" will be returned.
@@ -30,15 +25,6 @@ string hasData(string s) {
     return s.substr(b1, b2 - b1 + 2);
   }
   return "";
-}
-
-// Evaluate a polynomial.
-double polyeval(Eigen::VectorXd coeffs, double x) {
-  double result = 0.0;
-  for (int i = 0; i < coeffs.size(); i++) {
-    result += coeffs[i] * pow(x, i);
-  }
-  return result;
 }
 
 // Fit a polynomial.
